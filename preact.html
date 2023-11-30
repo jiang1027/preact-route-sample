@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Buildless Preact Page</title>
+
+<script type="module">
+	import { html, Component, render } from 'https://unpkg.com/htm/preact/standalone.module.js';
+
+	class Todo extends Component {
+		addTodo() {
+			const { todos = [] } = this.state;
+			this.setState({ todos: todos.concat(`Item ${todos.length}`) });
+		}
+
+		render({ page }, { todos = [] }) {
+			return html`
+          <div class="app">
+            <${Header} name="ToDo's (${page})" />
+            <button onClick=${() => this.addTodo()}>Add Todo</button>
+            <ul>
+              ${todos.map(todo => html`
+                <li key=${todo}>${todo}</li>
+              `)}
+            </ul>
+          </div>
+        `;
+		}
+	}
+
+	const Header = ({ name }) => html`<h1>${name} List</h1>`
+	const Footer = props => html`<footer ...${props} />`
+
+	const routes = [
+		{ name: "initial", view: html`<p>initial</p>` },
+		{ name: "quick", view: html`<p>quick</p>`, },
+		{ name: "todo", view: html`<${Todo} page="All" />`, },
+	];
+
+	class App extends Component {
+		constructor(props, kids) {
+			super(props, kids);
+
+			console.log('props ', props);
+			console.log('kids ', kids);
+
+			this.setState({ name: 'initial' });
+		}
+
+		render() {
+			let { name } = this.state;
+			console.log('name ', name);
+
+			let viewlist = html`
+				<ul>
+					${routes.map(r => html`<li><a href="route:${r.name}" onClick=${ e => this.navigateTo(e) }>${r.name}</a></li>`)}
+				</ul>
+			`;
+
+
+			return html`
+				<div class="app">
+					<h1>Current View: ${name}</h1>
+					${viewlist}
+					${routes.find(r => r.name == name).view}
+				</div>
+				<${Footer}>footer content here<//>
+        	`;
+		}
+
+		navigateTo(evt) {
+			console.log('evt ', evt);
+			let e = evt.target;
+			let href = e.getAttribute('href');
+			if (href.substr(0, 6) == 'route:') {
+				let page = href.substr(6);
+				this.setState({ name: page });
+				evt.preventDefault();
+			}
+		}
+	};
+
+	// render(html`<${App} page="All" />`, document.body);
+	render(html`<${App} />`, document.body);
+</script>
+
+<body>
+
+</body>
+
+</html>
